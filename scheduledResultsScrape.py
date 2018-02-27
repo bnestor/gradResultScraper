@@ -9,6 +9,7 @@ import scrapy
 from scrapy.crawler import CrawlerProcess
 from scrapy.crawler import CrawlerRunner
 import sched, time
+import sys
 
 
 
@@ -27,7 +28,7 @@ def run_crawl():
     deferred.addCallback(reactor.callLater, 3600*6, run_crawl)
     return deferred
 
-def run_sched_crawl(s):
+def run_sched_crawl(s, hours):
     """
     Run a spider using sched.when it finishes add another to the queue.
     """
@@ -42,7 +43,7 @@ def run_sched_crawl(s):
         print(time.time())
     except:
         return
-    s.enter(3600*1, 1, run_sched_crawl, kwargs={'s': s})
+    s.enter(3600*hours, 1, run_sched_crawl, kwargs={'s': s})
     return
 
 def print_yes(s):
@@ -53,9 +54,13 @@ def print_yes(s):
     return
 
 if  __name__=='__main__':
+    if len(sys.argv)>1:
+        hours=float(str(sys.argv[1]))
+    else:
+        hours=1
     # run_crawl()
     # reactor.run()   # you have to run the reactor yourself
     s = sched.scheduler(time.time, time.sleep)
     # s.enter(5, 1, print_yes, kwargs={'s': s})
-    s.enter(0, 1, run_sched_crawl, kwargs={'s': s})
+    s.enter(0, 1, run_sched_crawl, kwargs={'s': s, 'hours':hours})
     s.run()
